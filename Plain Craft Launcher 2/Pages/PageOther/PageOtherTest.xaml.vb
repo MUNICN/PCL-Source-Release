@@ -63,9 +63,13 @@ Public Class PageOtherTest
     ''' 今日人品：按当天日期算一个稳定的分数，同一天点多少次都是同一个值。
     ''' </summary>
     Public Shared Sub Jrrp()
-        Dim Seed As Integer = Math.Abs($"asdfgbn{Date.Now.DayOfYear}12#3$45{Date.Now.Year}IUY".GetStableHashCode())
-        Dim Num As Integer = Seed Mod 1000
-        Dim Score As Integer = If(Num < 970, CInt(Math.Round(Num / 969 * 99)), 100)
+        '注意：GetStableHashCode 返回的是 ULong，而 Math.Abs 没有 ULong 重载。
+        'VB 会把参数隐式提升成 Decimal 去调 Math.Abs(Decimal)，返回值再赋给 Integer 时
+        '因为超出 Int32 范围直接抛 OverflowException。所以全程用 ULong 运算，
+        '只在结果已经小于 1000 之后才转 Int32。
+        Dim Seed As ULong = $"asdfgbn{Date.Now.DayOfYear}12#3$45{Date.Now.Year}IUY".GetStableHashCode()
+        Dim Num As Integer = CInt(Seed Mod 1000UL)
+        Dim Score As Integer = If(Num < 970, CInt(Math.Round(Num / 969.0 * 99.0)), 100)
 
         Dim Tail As String
         Select Case True
